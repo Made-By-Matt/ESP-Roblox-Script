@@ -1,8 +1,3 @@
--- Made By Matt <3
--- You can test this in a studio project if you dont wanna use a executor
-
---AIMBOT
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
@@ -109,51 +104,115 @@ RunService.RenderStepped:Connect(function()
 	end	
 end)
 
---ESP
+--ESP part
 
-local Players = game:GetService("Players"):GetChildren()
-local RunService = game:GetService("RunService")
-local highlight = Instance.new("Highlight")
-highlight.Name  = "Highlight"
+local lplr = game.Players.LocalPlayer
+local camera = game:GetService("Workspace").CurrentCamera
+local CurrentCamera = workspace.CurrentCamera
+local worldToViewportPoint = CurrentCamera.worldToViewportPoint
 
-for i, v in pairs(Players) do
-	repeat wait() until v.Character
-	if not v.Character:FindFirstChild("HumanoidRootPart"):FindFirstChild("Highlight") then
-	local highlightClone = highlight:Clone()
-	highlightClone.Adornee = v.Character
-	highlightClone.Parent = v.Character:FindFirstChild("HumanoidRootPart")
-	highlightClone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	highlightClone.Name = "Highlight"
+local Headoff = Vector3.new(0, 0.5, 0)
+local Legoff = Vector3.new(0,3,0)
+
+for i,v in pairs(game.Players:GetChildren()) do
+	local BoxOutline = Drawing.new("Square")
+	BoxOutline.Visible = false
+	BoxOutline.Color = Color3.new(0,0,0)
+	BoxOutline.Thickness = 3
+	BoxOutline.Transparency = 1
+	BoxOutline.filled = false
+
+	local Box = Drawing.new("Square")
+	Box.visible = false
+	Box.Color = Color3.new(1,1,1)
+	Box.Thickness = 1
+	Box.Transparency = 1
+	Box.Filled = false
+	Box.SeeTeams = true
+
+	function boxesp()
+		game:GetService("RunService").RenderStepped:Connect(function()
+			if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
+				local Vector, onScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+
+				local RootPart = v.Character.HumanoidRootPart
+				local Head = v.Character.Head
+				local RootPosition, RootVis = worldToViewportPoint(CurrentCamera, RootPart.Position)
+				local HeadPosition = worldToViewportPoint(CurrentCamera, Head.Position + Headoff)
+				local LegPosition = worldToViewportPoint(CurrentCamera, RootPart.Position - Legoff)
+
+				if onScreen then
+					BoxOutline.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+					BoxOutline.Position = Vector2.new(RootPosition.X - BoxOutline.Size.X / 2, RootPosition.Y / 2)
+					BoxOutline.Visible = true
+
+					Box.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+					Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+					Box.Visible = true
+
+					if v.TeamColor == lplr.TeamColor then
+						Box.Color = Color3.new(0,0,0)
+					else
+						Box.Color = Color3.new(1,0,0)
+					end
+
+				else
+					BoxOutline.Visible = false
+					Box.Visible = false
+				end
+			else
+				BoxOutline.Visible = false
+				Box.Visible = false
+			end
+		end)
 	end
+	coroutine.wrap(boxesp)()
 end
 
-game.Players.PlayerAdded:Connect(function(player)
-	repeat wait() until player.Character
-	if not player.Character:FindFirstChild("HumanoidRootPart"):FindFirstChild("Highlight") then
-	local highlightClone = highlight:Clone()
-	highlightClone.Adornee = player.Character
-	highlightClone.Parent = player.Character:FindFirstChild("HumanoidRootPart")
-	highlightClone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	highlightClone.Name = "Highlight"
+game.Players.PlayerAdded:Connect(function(v)
+	local BoxOutline = Drawing.new("Square")
+	BoxOutline.Visible = false
+	BoxOutline.Color = Color3.new(0,0,0)
+	BoxOutline.Thickness = 3
+	BoxOutline.Transparency = 1
+	BoxOutline.filled = false
+
+	local Box = Drawing.new("Square")
+	Box.visible = false
+	Box.Color = Color3.new(1,1,1)
+	Box.Thickness = 1
+	Box.Transparency = 1
+	Box.Filled = false
+
+	function boxesp()
+		game:GetService("RunService").RenderStepped:Connect(function()
+			if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
+				local Vector, onScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+
+				local RootPart = v.Character.HumanoidRootPart
+				local Head = v.Character.Head
+				local RootPosition, RootVis = worldToViewportPoint(CurrentCamera, RootPart.Position)
+				local HeadPosition = worldToViewportPoint(CurrentCamera, Head.Position + Headoff)
+				local LegPosition = worldToViewportPoint(CurrentCamera, RootPart.Position - Legoff)
+
+				if onScreen then
+					BoxOutline.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+					BoxOutline.Position = Vector2.new(RootPosition.X - BoxOutline.Size.X / 2, RootPosition.Y / 2)
+					BoxOutline.Visible = true
+
+					Box.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+					Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+					Box.Visible = true
+
+				else
+					BoxOutline.Visible = false
+					Box.Visible = false
+				end
+			else
+				BoxOutline.Visible = false
+				Box.Visible = false
+			end
+		end)
 	end
-end)
-
--- If player leaves, remove highlight to prevent memory leaks and ESP issues
-
-game.Players.PlayerRemoving:Connect(function(playerRemoved)
-	playerRemoved.Character:FindFirstChild("HumanoidRootPart").Highlight:Destroy()
-end)
-
-RunService.Heartbeat:Connect(function()
-	for i, v in pairs(Players) do
-		repeat wait() until v.Character
-		if not v.Character:FindFirstChild("HumanoidRootPart"):FindFirstChild("Highlight") then
-		local highlightClone = highlight:Clone()
-		highlightClone.Adornee = v.Character
-		highlightClone.Parent = v.Character:FindFirstChild("HumanoidRootPart")
-		highlightClone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-		highlightClone.Name = "Highlight"
-		task.wait()
-	end
-end
+	coroutine.wrap(boxesp)()
 end)
